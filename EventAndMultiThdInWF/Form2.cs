@@ -11,19 +11,20 @@ using System.Windows.Forms;
 
 namespace EventAndMultiThdInWF
 {
-    public partial class Form1 : Form
+    public partial class Form2 : Form
     {
         public Puber puber;
-
-        public Form1()
+        public Form2(Form1 form1)
         {
             InitializeComponent();
             puber = new Puber();
-            puber.OnEvent += TestFunc;
+            puber.OnEvent += form1.TestFunc;
+
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
+            Thread.Sleep(5000);
             Thread myThd1 = new Thread(new ThreadStart(Work));
             myThd1.IsBackground = true;
 
@@ -40,11 +41,12 @@ namespace EventAndMultiThdInWF
             var temp = DateTime.Now.ToString("MM/dd hh:mm:ss:fff");
             var msg = $"[{temp} : ThdId = {Thread.CurrentThread.ManagedThreadId} : Trigger]";
             puber.Trigger(msg);
+
         }
 
-        public void TestFunc(object sender, string msg)
+        private void timer1_Tick(object sender, EventArgs e)
         {
-            TextBoxAdd(textBox1, msg);
+            TextBoxAdd(textBox1, Thread.CurrentThread.ManagedThreadId.ToString());
         }
 
         public delegate void TextBoxAddCallBack(TextBox textBox, string msg);
@@ -55,7 +57,7 @@ namespace EventAndMultiThdInWF
             {
                 TextBoxAddCallBack callBack = new TextBoxAddCallBack(TextBoxAdd);
                 this.Invoke(callBack, new object[] { textBox, Thread.CurrentThread.ManagedThreadId + msg });
-                
+
             }
             else
             {
@@ -63,17 +65,6 @@ namespace EventAndMultiThdInWF
                 textBox.Text += $"[{temp} {textBox.InvokeRequired} : ThdId = {Thread.CurrentThread.ManagedThreadId} : Handler] [{msg}]" + Environment.NewLine;
             }
 
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            Form2 form2 = new Form2(this);
-            form2.Show();
-        }
-
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            TextBoxAdd(textBox1, Thread.CurrentThread.ManagedThreadId.ToString());
         }
     }
 }
